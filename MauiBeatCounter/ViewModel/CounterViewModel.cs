@@ -49,7 +49,7 @@ public partial class CounterViewModel : ObservableObject
         _state = ClickState.Initial;
 
         MeterOptions = new List<MeterOption>(new[] {
-            new MeterOption(Meter.Beat, "beat"),
+            new MeterOption(Meter.Beat, "Beat"),
             new MeterOption(Meter.Double, "2/4"),
             new MeterOption(Meter.Waltz, "3/4"),
             new MeterOption(Meter.Common, "4/4")
@@ -59,8 +59,8 @@ public partial class CounterViewModel : ObservableObject
 
         MethodOptions = new List<CountOption>(new[]
         {
-            new CountOption(CountMethod.Beat, "beat"),
-            new CountOption(CountMethod.Measure, "measure"),
+            new CountOption(CountMethod.Beat, "Beat"),
+            new CountOption(CountMethod.Measure, "Measure"),
         });
 
         CurrentMethod = MethodOptions[1];

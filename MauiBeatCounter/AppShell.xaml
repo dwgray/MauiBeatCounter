@@ -7,7 +7,16 @@
     Shell.FlyoutBehavior="Disabled">
 
     <ShellContent
-        Title="Maui Beat Counter"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+    <Shell.TitleView>
+        <Grid>
+            <Label Text="Maui Counter App" 
+                   HorizontalTextAlignment="Center"
+                   HorizontalOptions="Fill"
+                   VerticalOptions="Center"
+                   TextColor="White"
+                   FontSize="Large"/>
+        </Grid>
+    </Shell.TitleView>
 </Shell>

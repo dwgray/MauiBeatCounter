@@ -6,25 +6,39 @@
              xmlns:viewmodel="clr-namespace:MauiBeatCounter.ViewModel"
              x:DataType="viewmodel:CounterViewModel"
              >
-
+    <NavigationPage.TitleView>
+        <Label HorizontalTextAlignment="Center"
+               Text="Foo Bar"/>
+    </NavigationPage.TitleView>
     <ScrollView>
-        <Grid
-            Margin="20,35,20,20">
+        <Grid Margin="20,35,20,20">
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="100"/>
+                <RowDefinition Height="170"/>
                 <RowDefinition />
                 <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
             <Button
+                Grid.Row="0"
+                Grid.ColumnSpan="2"
                 Text="{Binding ClickLabel}"
                 SemanticProperties.Hint="Click to count"
-                Margin="0,10"
+                Margin="15,20"
+                FontAttributes="Bold"
+                FontSize="24"
+                HeightRequest="150"
+                LineBreakMode="WordWrap"
                 Command="{Binding CounterClickCommand}" />
 
             <Border
                 Grid.Row="1"
+                Grid.ColumnSpan="2"
                 Stroke="Black"
                 StrokeThickness="2"
                 StrokeShape="RoundRectangle 20"
@@ -50,6 +64,7 @@
 
             <Border
                 Grid.Row="2"
+                Grid.ColumnSpan="2"
                 IsVisible="{Binding ShowMeasures}"
                 Stroke="Black"
                 StrokeThickness="2"
@@ -67,18 +82,41 @@
                 </Label>
             </Border>
 
-            <HorizontalStackLayout Grid.Row="3"
-                Margin="50,0"
-                Spacing="30">
-                <Picker Title="Meter:" 
-                        ItemsSource="{Binding MeterOptions}"
-                        ItemDisplayBinding="{Binding Name}"
-                        SelectedItem="{Binding CurrentMeter}"/>
-                <Picker Title="Count by:" 
-                        IsVisible="{Binding ShowMeasures}"
-                        ItemsSource="{Binding MethodOptions}"
-                        ItemDisplayBinding="{Binding Name}"
-                        SelectedItem="{Binding CurrentMethod}"/>
+            <HorizontalStackLayout 
+                Grid.Row="3"
+                VerticalOptions="End"
+                HorizontalOptions="Center">
+                <Label 
+                    IsVisible="{OnPlatform Default=False, Android=True}"
+                    Text="Meter:"
+                    VerticalOptions="Center"/>
+                <Picker 
+                    Margin="20,20"
+                    Title="Meter:" 
+                    ItemsSource="{Binding MeterOptions}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedItem="{Binding CurrentMeter}"
+                />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout 
+                Grid.Row="3"
+                Grid.Column="1"
+                VerticalOptions="End"
+                HorizontalOptions="Center">
+                <Label
+                    IsVisible="{OnPlatform Default=False, Android=True}"
+                    Text="Count By:"
+                    VerticalOptions="Center" />
+                <Picker
+                    Margin="20,20"
+                    Title="Count by:" 
+                    IsVisible="{Binding ShowMeasures}"
+                    ItemsSource="{Binding MethodOptions}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedItem="{Binding CurrentMethod}"
+                    VerticalOptions="End"
+                    HorizontalOptions="Center"/>
             </HorizontalStackLayout>
         </Grid>
     </ScrollView>
