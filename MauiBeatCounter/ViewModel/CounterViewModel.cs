@@ -3,42 +3,56 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace MauiBeatCounter.ViewModel;
 
+/*
+ * I'm managing state and handling "business logic" such as it is in a ViemModel class - this won't scale
+ *  beyond a fairly simple application, but seems like a reasonably clean solution for this very small application
+ * 
+ *  I'm making heavy use of custom setters and getters to supply a public interface on top of private state.
+ * 
+ *  The public interface is documented inline
+ * 
+ *  The internal state for the application is as follows
+ *    - User setabble options - the actual variables are record that include the enum value and human readable name
+ *      - _currentMethod - Does the user want to count by beats of by measures
+ *      - _currentMeter - beat (no meter), 2/4 (double), 3/4 (waltz) or 4/4 (common)
+ *    - Internal state
+ *      -  _state - This is a simple state machine to track whether the user has started counting, etc.
+ *          this is used to manage the rest of the internal state and helps to compute the title of the click button
+ *      - _lastClick - Timestamp of the last click
+ *      - _intervals - the last 10 intervals between click s in ticks (which may be rescaled based on meter/method)
+ *      - Cpm - counts per minute computed from _intervals
+ */
+
+/*
+ * The states for the core state machine
+ *  - initial = no data (initial state or timer reset without getting past firstClick state)
+ *  - firstClick = the user has clicked once after inital/done state
+ *  - counting = second - infinite continuous clicking without ever pausing for _maxTime
+ *  - done = user has paused for _maxtime after clicking at least twice 
+ */
 public enum ClickState { Initial, FirstClick, Counting, Done }
+
+/*
+ * Defines the possible meters - this was a bit of a stretch, since I was looking for
+ * single word synonyms for 2/4, 3/4 and 4/4.  "none" is included to make the rest of the
+ * values indices line up with their beats per measure.  "beat" isn't really a meter, but
+ * an indiciation that the user just wants to count beats and not worry about meter
+ */
 
 public enum Meter { Beat = 1, Double, Waltz, Common }
 
-public struct MeterOption
-{
-    private readonly Meter _meter;
-    private readonly string _name;
+/*
+ * By defining a record for MeterOption, we can define the options and bind to the
+ * XAML picker to structure, which allows us to define the human readable names
+ */
+public readonly record struct MeterOption(Meter meter, string name);
 
-    public MeterOption(Meter meter, string name)
-    {
-        _meter = meter;
-        _name = name;
-    }
-
-    public Meter Meter => _meter;
-    public string Name => _name;
-}
-
+/*
+ * Simple enum to define whether the user wants to click once per beat or once per measure
+ */
 public enum CountMethod { Beat, Measure }
 
-public struct CountOption
-{
-    private readonly CountMethod _method;
-    private readonly string _name;
-
-    public CountOption(CountMethod method, string name)
-    {
-        _method = method;
-        _name = name;
-    }
-
-    public CountMethod Method => _method;
-    public string Name => _name;
-}
-
+public readonly record struct CountOption(CountMethod method, string name);
 
 public partial class CounterViewModel : ObservableObject
 {
@@ -48,25 +62,25 @@ public partial class CounterViewModel : ObservableObject
     {
         _state = ClickState.Initial;
 
-        MeterOptions = new List<MeterOption>(new[] {
-            new MeterOption(Meter.Beat, "Beat"),
-            new MeterOption(Meter.Double, "2/4"),
-            new MeterOption(Meter.Waltz, "3/4"),
-            new MeterOption(Meter.Common, "4/4")
+        MeterOptions = new List<MeterOption>(new MeterOption[] {
+            new (Meter.Beat, "Beat"),
+            new (Meter.Double, "2/4"),
+            new (Meter.Waltz, "3/4"),
+            new (Meter.Common, "4/4")
         });
 
         CurrentMeter = MeterOptions[3];
 
-        MethodOptions = new List<CountOption>(new[]
+        MethodOptions = new List<CountOption>(new CountOption[]
         {
-            new CountOption(CountMethod.Beat, "Beat"),
-            new CountOption(CountMethod.Measure, "Measure"),
+            new (CountMethod.Beat, "Beat"),
+            new (CountMethod.Measure, "Measure"),
         });
 
         CurrentMethod = MethodOptions[1];
     }
 
-    public Meter Meter => CurrentMeter.Meter;
+    public Meter Meter => CurrentMeter.meter;
     public int Numerator => (int)Meter;
 
     public IReadOnlyList<MeterOption> MeterOptions { get; private set; }
@@ -78,10 +92,10 @@ public partial class CounterViewModel : ObservableObject
         get => _currentMeter;
         set
         {
-            var oldMeter = _currentMeter.Meter;
+            var oldMeter = _currentMeter.meter;
             if (SetProperty(ref _currentMeter, value))
             {
-                ConvertIntervals(oldMeter, value.Meter);
+                ConvertIntervals(oldMeter, value.meter);
                 OnPropertyChanged(nameof(Meter));
                 OnPropertyChanged(nameof(Method));
                 OnPropertyChanged(nameof(Numerator));
@@ -94,7 +108,7 @@ public partial class CounterViewModel : ObservableObject
 
     public bool ShowMeasures => Meter != Meter.Beat;
 
-    public CountMethod Method => Meter == Meter.Beat ? CountMethod.Beat : CurrentMethod.Method;
+    public CountMethod Method => Meter == Meter.Beat ? CountMethod.Beat : CurrentMethod.method;
 
     public IReadOnlyList<CountOption> MethodOptions { get; private set; }
 
@@ -107,7 +121,7 @@ public partial class CounterViewModel : ObservableObject
         {
             if (SetProperty(ref _currentMethod, value))
             {
-                switch (value.Method)
+                switch (value.method)
                 {
                     case CountMethod.Beat:
                         ConvertIntervals(Meter, Meter.Beat);
@@ -130,6 +144,13 @@ public partial class CounterViewModel : ObservableObject
     private readonly List<int> _intervals = new();
     private Timer _timeout;
 
+    /*
+     * Handle the click event on the counting button - this updates the click state
+     * to manage the core internal state machine and resets the timeout
+     * 
+     * Note the use of the RelayCommand attribute, this avoids a bunch of boilerplate
+     * code to pipe the click command defined in the Xaml to this function.
+     */
     [RelayCommand]
     private void CounterClick()
     {
@@ -157,6 +178,9 @@ public partial class CounterViewModel : ObservableObject
                 break;
         }
 
+        // Here, we're manually letting the system know which properties
+        //  are potentially updated when this method is invoked
+
         OnPropertyChanged(nameof(State));
         OnPropertyChanged(nameof(Mpm));
         OnPropertyChanged(nameof(Bpm));
@@ -164,6 +188,11 @@ public partial class CounterViewModel : ObservableObject
         _timeout = new Timer(OnTimeout, null, MaxWait, Timeout.Infinite);
     }
 
+
+    /*
+     * Timeout handler that sets the state to done or initial once the user has stopped clicking
+     * for _maxWait milliseconds
+     */
     private void OnTimeout(Object _)
     {
         switch (State)
@@ -186,6 +215,7 @@ public partial class CounterViewModel : ObservableObject
         OnPropertyChanged(nameof(ClickLabel));
     }
 
+    // Clicks per minute - computed from the last ten intevals between clicks
     private double Cpm {
         get
         {
@@ -199,21 +229,7 @@ public partial class CounterViewModel : ObservableObject
         }
     }
 
-    public double Mpm { 
-        get
-        {
-            switch (Method)
-            {
-                case CountMethod.Beat:
-                    return Cpm / (int)Meter;
-                case CountMethod.Measure:
-                    return Cpm;
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-    }
-
+    // Beats per minute calculated for clicks per minute and meter
     public double Bpm
     {
         get
@@ -230,6 +246,23 @@ public partial class CounterViewModel : ObservableObject
         }
     }
 
+    //  Measures per minute calculated from clicks per minute and meter
+    public double Mpm { 
+        get
+        {
+            switch (Method)
+            {
+                case CountMethod.Beat:
+                    return Cpm / (int)Meter;
+                case CountMethod.Measure:
+                    return Cpm;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+    }
+
+    // The label to show on the main button, reactive based on changes of state
     public string ClickLabel
     {
         get

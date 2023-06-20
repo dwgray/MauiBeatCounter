@@ -94,7 +94,7 @@
                     Margin="20,20"
                     Title="Meter:" 
                     ItemsSource="{Binding MeterOptions}"
-                    ItemDisplayBinding="{Binding Name}"
+                    ItemDisplayBinding="{Binding name}"
                     SelectedItem="{Binding CurrentMeter}"
                 />
             </HorizontalStackLayout>
@@ -113,7 +113,7 @@
                     Title="Count by:" 
                     IsVisible="{Binding ShowMeasures}"
                     ItemsSource="{Binding MethodOptions}"
-                    ItemDisplayBinding="{Binding Name}"
+                    ItemDisplayBinding="{Binding name}"
                     SelectedItem="{Binding CurrentMethod}"
                     VerticalOptions="End"
                     HorizontalOptions="Center"/>
