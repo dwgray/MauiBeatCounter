@@ -96,12 +96,10 @@ public partial class CounterViewModel : ObservableObject
             if (SetProperty(ref _currentMeter, value))
             {
                 ConvertIntervals(oldMeter, value.meter);
-                OnPropertyChanged(nameof(Meter));
                 OnPropertyChanged(nameof(Method));
                 OnPropertyChanged(nameof(Numerator));
-                OnPropertyChanged(nameof(Mpm));
-                OnPropertyChanged(nameof(ClickLabel));
                 OnPropertyChanged(nameof(ShowMeasures));
+                OnPropertyChanged(nameof(ClickLabel));
             }
         }
     }
@@ -130,8 +128,6 @@ public partial class CounterViewModel : ObservableObject
                         ConvertIntervals(Meter.Beat, Meter);
                         break;
                 }
-                OnPropertyChanged(nameof(Method));
-                OnPropertyChanged(nameof(Mpm));
                 OnPropertyChanged(nameof(ClickLabel));
             }
         }
@@ -181,7 +177,6 @@ public partial class CounterViewModel : ObservableObject
         // Here, we're manually letting the system know which properties
         //  are potentially updated when this method is invoked
 
-        OnPropertyChanged(nameof(State));
         OnPropertyChanged(nameof(Mpm));
         OnPropertyChanged(nameof(Bpm));
         OnPropertyChanged(nameof(ClickLabel));
@@ -209,9 +204,6 @@ public partial class CounterViewModel : ObservableObject
                 break;
         }
 
-        OnPropertyChanged(nameof(State));
-        OnPropertyChanged(nameof(Mpm));
-        OnPropertyChanged(nameof(Bpm));
         OnPropertyChanged(nameof(ClickLabel));
     }
 
@@ -294,6 +286,7 @@ public partial class CounterViewModel : ObservableObject
             var beat = _intervals[i] / (int)oldMeter;
             _intervals[i] = beat * (int)newMeter;
         }
+        OnPropertyChanged(nameof(Mpm));
     }
 
 }
