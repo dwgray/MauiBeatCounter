@@ -65,7 +65,7 @@
             <Border
                 Grid.Row="2"
                 Grid.ColumnSpan="2"
-                IsVisible="{Binding ShowMeasures}"
+
                 Stroke="Black"
                 StrokeThickness="2"
                 StrokeShape="RoundRectangle 20"
@@ -87,7 +87,7 @@
                 VerticalOptions="End"
                 HorizontalOptions="Center">
                 <Label 
-                    IsVisible="{OnPlatform Default=False, Android=True}"
+                    IsVisible="{OnPlatform Default=True, WinUI=False}"
                     Text="Meter:"
                     VerticalOptions="Center"/>
                 <Picker 
@@ -102,16 +102,16 @@
             <HorizontalStackLayout 
                 Grid.Row="3"
                 Grid.Column="1"
+                IsVisible="{Binding ShowMeasures}"
                 VerticalOptions="End"
                 HorizontalOptions="Center">
                 <Label
-                    IsVisible="{OnPlatform Default=False, Android=True}"
+                    IsVisible="{OnPlatform Default=True, WinUI=False}"
                     Text="Count By:"
                     VerticalOptions="Center" />
                 <Picker
                     Margin="20,20"
                     Title="Count by:" 
-                    IsVisible="{Binding ShowMeasures}"
                     ItemsSource="{Binding MethodOptions}"
                     ItemDisplayBinding="{Binding name}"
                     SelectedItem="{Binding CurrentMethod}"
